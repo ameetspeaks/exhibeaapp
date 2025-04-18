@@ -1,7 +1,12 @@
 import 'package:flutter/material.dart';
 
 class ExhibitionSettingsScreen extends StatefulWidget {
-  const ExhibitionSettingsScreen({super.key});
+  final String exhibitionId;
+
+  const ExhibitionSettingsScreen({
+    super.key,
+    required this.exhibitionId,
+  });
 
   @override
   State<ExhibitionSettingsScreen> createState() => _ExhibitionSettingsScreenState();
@@ -48,27 +53,32 @@ class _ExhibitionSettingsScreenState extends State<ExhibitionSettingsScreen> {
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      );
+      return const Center(child: CircularProgressIndicator());
     }
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Exhibition Settings'),
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildSectionTitle('Notifications'),
-            _buildNotificationSettings(),
-            const SizedBox(height: 24),
-            _buildSectionTitle('General Settings'),
-            _buildGeneralSettings(),
-          ],
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => Navigator.pop(context),
         ),
+        title: const Text('Settings'),
+      ),
+      body: CustomScrollView(
+        slivers: [
+          SliverPadding(
+            padding: const EdgeInsets.all(16),
+            sliver: SliverList(
+              delegate: SliverChildListDelegate([
+                _buildSectionTitle('Notifications'),
+                _buildNotificationSettings(),
+                const SizedBox(height: 24),
+                _buildSectionTitle('General Settings'),
+                _buildGeneralSettings(),
+              ]),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -98,65 +108,50 @@ class _ExhibitionSettingsScreenState extends State<ExhibitionSettingsScreen> {
               });
             },
           ),
-          const Divider(),
           SwitchListTile(
             title: const Text('Email Notifications'),
             value: _settings!['emailNotifications'],
-            onChanged: _settings!['notificationEnabled']
-                ? (value) {
-                    setState(() {
-                      _settings!['emailNotifications'] = value;
-                    });
-                  }
-                : null,
+            onChanged: (value) {
+              setState(() {
+                _settings!['emailNotifications'] = value;
+              });
+            },
           ),
-          const Divider(),
           SwitchListTile(
             title: const Text('Push Notifications'),
             value: _settings!['pushNotifications'],
-            onChanged: _settings!['notificationEnabled']
-                ? (value) {
-                    setState(() {
-                      _settings!['pushNotifications'] = value;
-                    });
-                  }
-                : null,
+            onChanged: (value) {
+              setState(() {
+                _settings!['pushNotifications'] = value;
+              });
+            },
           ),
-          const Divider(),
           SwitchListTile(
             title: const Text('Booking Confirmations'),
             value: _settings!['bookingConfirmation'],
-            onChanged: _settings!['notificationEnabled']
-                ? (value) {
-                    setState(() {
-                      _settings!['bookingConfirmation'] = value;
-                    });
-                  }
-                : null,
+            onChanged: (value) {
+              setState(() {
+                _settings!['bookingConfirmation'] = value;
+              });
+            },
           ),
-          const Divider(),
           SwitchListTile(
             title: const Text('Payment Reminders'),
             value: _settings!['paymentReminders'],
-            onChanged: _settings!['notificationEnabled']
-                ? (value) {
-                    setState(() {
-                      _settings!['paymentReminders'] = value;
-                    });
-                  }
-                : null,
+            onChanged: (value) {
+              setState(() {
+                _settings!['paymentReminders'] = value;
+              });
+            },
           ),
-          const Divider(),
           SwitchListTile(
-            title: const Text('Stall Availability Updates'),
+            title: const Text('Stall Availability Alerts'),
             value: _settings!['stallAvailability'],
-            onChanged: _settings!['notificationEnabled']
-                ? (value) {
-                    setState(() {
-                      _settings!['stallAvailability'] = value;
-                    });
-                  }
-                : null,
+            onChanged: (value) {
+              setState(() {
+                _settings!['stallAvailability'] = value;
+              });
+            },
           ),
         ],
       ),
@@ -172,25 +167,23 @@ class _ExhibitionSettingsScreenState extends State<ExhibitionSettingsScreen> {
             subtitle: Text(_settings!['defaultCurrency']),
             trailing: const Icon(Icons.chevron_right),
             onTap: () {
-              // TODO: Show currency selection dialog
+              // TODO: Show currency picker
             },
           ),
-          const Divider(),
           ListTile(
             title: const Text('Timezone'),
             subtitle: Text(_settings!['timezone']),
             trailing: const Icon(Icons.chevron_right),
             onTap: () {
-              // TODO: Show timezone selection dialog
+              // TODO: Show timezone picker
             },
           ),
-          const Divider(),
           ListTile(
             title: const Text('Language'),
             subtitle: Text(_settings!['language']),
             trailing: const Icon(Icons.chevron_right),
             onTap: () {
-              // TODO: Show language selection dialog
+              // TODO: Show language picker
             },
           ),
         ],

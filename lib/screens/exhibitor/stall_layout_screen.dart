@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../../models/stall_layout_model.dart';
-import '../../services/stall_layout_service.dart';
+import 'package:exhibea/models/stall.dart';
+import 'package:exhibea/services/stall_layout_service.dart';
 
 class StallLayoutScreen extends StatefulWidget {
   final String exhibitionId;
@@ -79,7 +79,23 @@ class _StallLayoutScreenState extends State<StallLayoutScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(_layout?.name ?? 'Stall Layout'),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => Navigator.pop(context),
+        ),
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text('Stall Layout'),
+            if (_layout != null)
+              Text(
+                'Total Stalls: ${_layout!.stalls.length}',
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+                ),
+              ),
+          ],
+        ),
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
@@ -101,14 +117,74 @@ class _StallLayoutScreenState extends State<StallLayoutScreen> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
+                                // Stall layout visualization
+                                Container(
+                                  width: double.infinity,
+                                  height: 400,
+                                  decoration: BoxDecoration(
+                                    border: Border.all(color: Colors.grey.shade300),
+                                    borderRadius: BorderRadius.circular(12),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.grey.withOpacity(0.1),
+                                        spreadRadius: 1,
+                                        blurRadius: 4,
+                                        offset: const Offset(0, 2),
+                                      ),
+                                    ],
+                                  ),
+                                  child: ClipRRect(
+                                    borderRadius: BorderRadius.circular(12),
+                                    child: GridView.builder(
+                                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                                        crossAxisCount: _layout!.columns,
+                                        childAspectRatio: 1.0,
+                                        crossAxisSpacing: 1,
+                                        mainAxisSpacing: 1,
+                                      ),
+                                      itemCount: _layout!.stalls.length,
+                                      itemBuilder: (context, index) {
+                                        final stall = _layout!.stalls[index];
+                                        return Container(
+                                          color: _getStallColor(stall),
+                                          child: Center(
+                                            child: Text(
+                                              _getStallLabel(stall),
+                                              style: const TextStyle(
+                                                color: Colors.black,
+                                                fontSize: 12,
+                                                fontWeight: FontWeight.w500,
+                                              ),
+                                            ),
+                                          ),
+                                        );
+                                      },
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(height: 24),
+                                // Legend
                                 Text(
-                                  _layout!.name,
-                                  style: Theme.of(context).textTheme.headlineSmall,
+                                  'Legend',
+                                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                  ),
                                 ),
                                 const SizedBox(height: 16),
-                                _buildLayoutGrid(),
-                                const SizedBox(height: 24),
-                                _buildLegend(),
+                                Wrap(
+                                  spacing: 16,
+                                  runSpacing: 12,
+                                  children: [
+                                    _buildLegendItem(Colors.green, 'Entrance'),
+                                    _buildLegendItem(Colors.red, 'Exit'),
+                                    _buildLegendItem(Colors.blue, 'Restroom'),
+                                    _buildLegendItem(Colors.orange, 'Food Court'),
+                                    _buildLegendItem(Colors.lightBlue, 'Small Stall'),
+                                    _buildLegendItem(Colors.blue, 'Medium Stall'),
+                                    _buildLegendItem(Colors.indigo, 'Large Stall'),
+                                    _buildLegendItem(Colors.grey, 'Booked'),
+                                  ],
+                                ),
                               ],
                             ),
                           ),
@@ -118,85 +194,32 @@ class _StallLayoutScreenState extends State<StallLayoutScreen> {
     );
   }
 
-  Widget _buildLayoutGrid() {
-    return Container(
-      decoration: BoxDecoration(
-        border: Border.all(color: Colors.grey),
-      ),
-      child: Column(
-        children: List.generate(
-          _layout!.rows,
-          (row) => Row(
-            children: List.generate(
-              _layout!.columns,
-              (col) {
-                final stall = _layout!.stalls.firstWhere(
-                  (s) => s.row == row && s.column == col,
-                  orElse: () => StallPosition(row: row, column: col),
-                );
-                
-                return Expanded(
-                  child: AspectRatio(
-                    aspectRatio: 1,
-                    child: Container(
-                      decoration: BoxDecoration(
-                        border: Border.all(color: Colors.grey),
-                        color: _getStallColor(stall),
-                      ),
-                      child: Center(
-                        child: Text(
-                          _getStallLabel(stall),
-                          textAlign: TextAlign.center,
-                          style: const TextStyle(
-                            fontSize: 10,
-                            color: Colors.black,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                );
-              },
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildLegend() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          'Legend:',
-          style: TextStyle(fontWeight: FontWeight.bold),
-        ),
-        const SizedBox(height: 8),
-        _buildLegendItem(Colors.green, 'Entrance'),
-        _buildLegendItem(Colors.red, 'Exit'),
-        _buildLegendItem(Colors.blue, 'Restroom'),
-        _buildLegendItem(Colors.orange, 'Food Court'),
-        _buildLegendItem(Colors.lightBlue, 'Small Stall'),
-        _buildLegendItem(Colors.blue, 'Medium Stall'),
-        _buildLegendItem(Colors.indigo, 'Large Stall'),
-        _buildLegendItem(Colors.grey, 'Booked'),
-      ],
-    );
-  }
-
   Widget _buildLegendItem(Color color, String label) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: color.withOpacity(0.3)),
+      ),
       child: Row(
+        mainAxisSize: MainAxisSize.min,
         children: [
           Container(
-            width: 20,
-            height: 20,
-            color: color,
-            margin: const EdgeInsets.only(right: 8),
+            width: 12,
+            height: 12,
+            decoration: BoxDecoration(
+              color: color,
+              borderRadius: BorderRadius.circular(4),
+            ),
           ),
-          Text(label),
+          const SizedBox(width: 8),
+          Text(
+            label,
+            style: const TextStyle(
+              fontWeight: FontWeight.w500,
+            ),
+          ),
         ],
       ),
     );

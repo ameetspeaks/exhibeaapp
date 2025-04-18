@@ -46,15 +46,26 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Future<void> _handleLogout() async {
     try {
-      await AuthService().signOut();
+      setState(() => _isLoading = true);
+      final userType = await AuthService().signOut();
       if (mounted) {
-        context.go('/login');
+        // Clear any user data
+        _userData = null;
+        // Navigate to login screen with correct user type
+        context.go('/$userType/login');
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to logout: $e')),
+          SnackBar(
+            content: Text('Failed to logout: $e'),
+            backgroundColor: Colors.red,
+          ),
         );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
       }
     }
   }
@@ -70,6 +81,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Profile'),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => context.pop(),
+        ),
         actions: [
           IconButton(
             icon: const Icon(Icons.edit),
@@ -128,11 +143,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 onChanged: (value) {},
               ),
             ],
-          ),
-          const SizedBox(height: 24),
-          ElevatedButton(
-            onPressed: _handleLogout,
-            child: const Text('Logout'),
           ),
         ],
       ),

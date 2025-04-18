@@ -56,7 +56,7 @@ class RoleSelectionScreen extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               const Text(
-                'Welcome to Exhibition Hub',
+                'Welcome to Exhibae',
                 style: TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
@@ -170,7 +170,7 @@ class App extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp.router(
-      title: 'Exhibition Hub',
+      title: 'Exhibae',
       theme: ThemeData(
         primarySwatch: Colors.blue,
         primaryColor: AppTheme.exhibitorColor,

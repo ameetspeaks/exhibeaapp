@@ -17,7 +17,7 @@ class UserTypeScreen extends StatelessWidget {
             children: [
               const SizedBox(height: 40),
               Text(
-                'Welcome to Exhibition Hub',
+                'Welcome to Exhibae',
                 style: theme.textTheme.headlineMedium?.copyWith(
                   fontWeight: FontWeight.bold,
                 ),

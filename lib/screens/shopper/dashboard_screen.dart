@@ -1,164 +1,181 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-class DashboardScreen extends StatelessWidget {
-  const DashboardScreen({super.key});
+class ShopperDashboardScreen extends StatefulWidget {
+  const ShopperDashboardScreen({super.key});
+
+  @override
+  State<ShopperDashboardScreen> createState() => _ShopperDashboardScreenState();
+}
+
+class _ShopperDashboardScreenState extends State<ShopperDashboardScreen> {
+  int _selectedIndex = 0;
+  final List<Widget> _screens = [
+    const _HomeScreen(),
+    const _DiscoverScreen(),
+    const _BookmarksScreen(),
+    const _ProfileScreen(),
+  ];
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    
-    return CustomScrollView(
-      slivers: [
-        SliverAppBar(
-          floating: true,
-          title: const Text('Welcome Back!'),
-          actions: [
-            IconButton(
-              icon: const Icon(Icons.notifications_outlined),
-              onPressed: () {
-                // TODO: Implement notifications
-              },
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Shopper Dashboard'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.notifications),
+            onPressed: () {
+              // TODO: Navigate to notifications
+            },
+          ),
+          IconButton(
+            icon: const Icon(Icons.logout),
+            onPressed: () {
+              context.go('/login');
+            },
+          ),
+        ],
+      ),
+      body: _screens[_selectedIndex],
+      bottomNavigationBar: NavigationBar(
+        selectedIndex: _selectedIndex,
+        onDestinationSelected: (index) {
+          setState(() {
+            _selectedIndex = index;
+          });
+        },
+        destinations: const [
+          NavigationDestination(
+            icon: Icon(Icons.home),
+            label: 'Home',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.explore),
+            label: 'Discover',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.bookmark),
+            label: 'Bookmarks',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.person),
+            label: 'Profile',
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _HomeScreen extends StatelessWidget {
+  const _HomeScreen();
+
+  @override
+  Widget build(BuildContext context) {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildWelcomeCard(context),
+          const SizedBox(height: 24),
+          _buildQuickActions(context),
+          const SizedBox(height: 24),
+          _buildUpcomingExhibitions(context),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildWelcomeCard(BuildContext context) {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Welcome back!',
+              style: Theme.of(context).textTheme.headlineSmall,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Discover amazing exhibitions and events near you.',
+              style: Theme.of(context).textTheme.bodyMedium,
             ),
           ],
         ),
-        SliverToBoxAdapter(
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Search Bar
-                TextField(
-                  decoration: InputDecoration(
-                    hintText: 'Search exhibitions, brands...',
-                    prefixIcon: const Icon(Icons.search),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide.none,
-                    ),
-                    filled: true,
-                    fillColor: theme.cardColor,
-                  ),
-                  onTap: () {
-                    // TODO: Implement search
-                  },
-                ),
-                const SizedBox(height: 24),
-                
-                // Featured Exhibitions
-                Text(
-                  'Featured Exhibitions',
-                  style: theme.textTheme.titleLarge,
-                ),
-                const SizedBox(height: 16),
-                SizedBox(
-                  height: 200,
-                  child: ListView.builder(
-                    scrollDirection: Axis.horizontal,
-                    itemCount: 3,
-                    itemBuilder: (context, index) {
-                      return Padding(
-                        padding: const EdgeInsets.only(right: 16),
-                        child: _buildExhibitionCard(context, index),
-                      );
-                    },
-                  ),
-                ),
-                const SizedBox(height: 24),
-                
-                // Popular Brands
-                Text(
-                  'Popular Brands',
-                  style: theme.textTheme.titleLarge,
-                ),
-                const SizedBox(height: 16),
-                GridView.builder(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2,
-                    childAspectRatio: 1,
-                    crossAxisSpacing: 16,
-                    mainAxisSpacing: 16,
-                  ),
-                  itemCount: 4,
-                  itemBuilder: (context, index) {
-                    return _buildBrandCard(context, index);
-                  },
-                ),
-              ],
+      ),
+    );
+  }
+
+  Widget _buildQuickActions(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Quick Actions',
+          style: Theme.of(context).textTheme.titleLarge,
+        ),
+        const SizedBox(height: 16),
+        GridView.count(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          crossAxisCount: 2,
+          mainAxisSpacing: 16,
+          crossAxisSpacing: 16,
+          children: [
+            _buildActionCard(
+              context,
+              icon: Icons.search,
+              title: 'Search Exhibitions',
+              onTap: () => context.go('/shopper/search'),
             ),
-          ),
+            _buildActionCard(
+              context,
+              icon: Icons.calendar_today,
+              title: 'My Schedule',
+              onTap: () => context.go('/shopper/schedule'),
+            ),
+            _buildActionCard(
+              context,
+              icon: Icons.confirmation_number,
+              title: 'My Tickets',
+              onTap: () => context.go('/shopper/tickets'),
+            ),
+            _buildActionCard(
+              context,
+              icon: Icons.map,
+              title: 'Nearby Events',
+              onTap: () => context.go('/shopper/nearby'),
+            ),
+          ],
         ),
       ],
     );
   }
 
-  Widget _buildExhibitionCard(BuildContext context, int index) {
-    final exhibitions = [
-      {
-        'name': 'Fashion Week 2024',
-        'date': 'March 15-20, 2024',
-        'image': 'https://picsum.photos/300/200?random=$index',
-      },
-      {
-        'name': 'Tech Expo 2024',
-        'date': 'April 5-7, 2024',
-        'image': 'https://picsum.photos/300/200?random=${index + 10}',
-      },
-      {
-        'name': 'Art & Design Fair',
-        'date': 'May 10-12, 2024',
-        'image': 'https://picsum.photos/300/200?random=${index + 20}',
-      },
-    ];
-
-    final exhibition = exhibitions[index];
-    
-    return GestureDetector(
-      onTap: () => context.go('/shopper/exhibitions/${index + 1}'),
-      child: Container(
-        width: 300,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(12),
-          image: DecorationImage(
-            image: NetworkImage(exhibition['image'] as String),
-            fit: BoxFit.cover,
-          ),
-        ),
-        child: Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(12),
-            gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [
-                Colors.transparent,
-                Colors.black.withOpacity(0.7),
-              ],
-            ),
-          ),
+  Widget _buildActionCard(
+    BuildContext context, {
+    required IconData icon,
+    required String title,
+    required VoidCallback onTap,
+  }) {
+    return Card(
+      child: InkWell(
+        onTap: onTap,
+        child: Padding(
           padding: const EdgeInsets.all(16),
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.end,
-            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
+              Icon(icon, size: 32),
+              const SizedBox(height: 8),
               Text(
-                exhibition['name'] as String,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                exhibition['date'] as String,
-                style: const TextStyle(
-                  color: Colors.white70,
-                  fontSize: 14,
-                ),
+                title,
+                textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.titleMedium,
               ),
             ],
           ),
@@ -167,79 +184,64 @@ class DashboardScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildBrandCard(BuildContext context, int index) {
-    final brands = [
-      {
-        'name': 'Fashion Forward',
-        'category': 'Clothing',
-        'image': 'https://picsum.photos/200/200?random=$index',
-      },
-      {
-        'name': 'Tech Innovations',
-        'category': 'Electronics',
-        'image': 'https://picsum.photos/200/200?random=${index + 10}',
-      },
-      {
-        'name': 'Artisan Crafts',
-        'category': 'Handmade',
-        'image': 'https://picsum.photos/200/200?random=${index + 20}',
-      },
-      {
-        'name': 'Luxury Living',
-        'category': 'Home Decor',
-        'image': 'https://picsum.photos/200/200?random=${index + 30}',
-      },
-    ];
+  Widget _buildUpcomingExhibitions(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Recommended for You',
+          style: Theme.of(context).textTheme.titleLarge,
+        ),
+        const SizedBox(height: 16),
+        ListView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: 3, // Replace with actual data
+          itemBuilder: (context, index) {
+            return Card(
+              child: ListTile(
+                title: Text('Exhibition ${index + 1}'),
+                subtitle: Text('Date: ${DateTime.now().add(Duration(days: index + 1))}'),
+                trailing: const Icon(Icons.arrow_forward_ios),
+                onTap: () => context.go('/shopper/exhibitions/$index'),
+              ),
+            );
+          },
+        ),
+      ],
+    );
+  }
+}
 
-    final brand = brands[index];
-    
-    return GestureDetector(
-      onTap: () => context.go('/shopper/brands/${index + 1}'),
-      child: Card(
-        elevation: 2,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Expanded(
-              child: ClipRRect(
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
-                child: Image.network(
-                  brand['image'] as String,
-                  fit: BoxFit.cover,
-                ),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(12),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    brand['name'] as String,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    brand['category'] as String,
-                    style: TextStyle(
-                      color: Theme.of(context).textTheme.bodySmall?.color,
-                      fontSize: 14,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
+class _DiscoverScreen extends StatelessWidget {
+  const _DiscoverScreen();
+
+  @override
+  Widget build(BuildContext context) {
+    return const Center(
+      child: Text('Discover Screen'),
+    );
+  }
+}
+
+class _BookmarksScreen extends StatelessWidget {
+  const _BookmarksScreen();
+
+  @override
+  Widget build(BuildContext context) {
+    return const Center(
+      child: Text('Bookmarks Screen'),
+    );
+  }
+}
+
+class _ProfileScreen extends StatelessWidget {
+  const _ProfileScreen();
+
+  @override
+  Widget build(BuildContext context) {
+    return const Center(
+      child: Text('Profile Screen'),
     );
   }
 } 

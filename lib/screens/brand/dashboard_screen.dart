@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../../services/brand_service.dart';
 
 class BrandDashboardScreen extends StatefulWidget {
   const BrandDashboardScreen({super.key});
@@ -15,6 +16,7 @@ class _BrandDashboardScreenState extends State<BrandDashboardScreen> {
   final Color brandColor = const Color(0xFF389DF3);
   final Color buttonColor = const Color(0xFFE97917);
   final Color textColor = const Color(0xFFFFFFFF);
+  final BrandService _brandService = BrandService();
 
   @override
   void initState() {
@@ -26,65 +28,15 @@ class _BrandDashboardScreenState extends State<BrandDashboardScreen> {
     setState(() => _isLoading = true);
 
     try {
-      // TODO: Implement dashboard data loading logic
-      await Future.delayed(const Duration(seconds: 1)); // Simulated API call
+      final activeBookings = await _brandService.getActiveBookings();
+      final upcomingExhibitions = await _brandService.getUpcomingExhibitions();
+      final lookbook = await _brandService.getLookBook();
+
       setState(() {
         _dashboardData = {
-          'activeBookings': [
-            {
-              'id': '1',
-              'exhibition': 'Tech Expo 2024',
-              'stall': 'A-101',
-              'date': '2024-03-15',
-              'status': 'Confirmed',
-            },
-            {
-              'id': '2',
-              'exhibition': 'Fashion Week',
-              'stall': 'B-203',
-              'date': '2024-03-20',
-              'status': 'Confirmed',
-            },
-          ],
-          'upcomingExhibitions': [
-            {
-              'id': '1',
-              'name': 'Spring Fashion Show',
-              'date': '2024-04-01',
-              'location': 'Convention Center',
-              'availableStalls': 12,
-            },
-            {
-              'id': '2',
-              'name': 'Tech Innovation Summit',
-              'date': '2024-04-15',
-              'location': 'Tech Hub',
-              'availableStalls': 8,
-            },
-          ],
-          'lookbook': [
-            {
-              'id': '1',
-              'title': 'Spring Collection 2024',
-              'type': 'image',
-              'url': 'https://images.unsplash.com/photo-1445205170230-053b83016050?w=500&auto=format&fit=crop&q=60',
-              'description': 'Our latest spring collection featuring innovative designs',
-            },
-            {
-              'id': '2',
-              'title': 'Tech Fusion Catalog',
-              'type': 'pdf',
-              'url': 'https://example.com/catalog.pdf',
-              'description': 'Download our complete product catalog',
-            },
-            {
-              'id': '3',
-              'title': 'Summer Collection',
-              'type': 'image',
-              'url': 'https://images.unsplash.com/photo-1523381210434-271e8be1f52b?w=500&auto=format&fit=crop&q=60',
-              'description': 'Preview our upcoming summer collection',
-            },
-          ],
+          'activeBookings': activeBookings,
+          'upcomingExhibitions': upcomingExhibitions,
+          'lookbook': lookbook,
         };
       });
     } catch (e) {
@@ -105,34 +57,64 @@ class _BrandDashboardScreenState extends State<BrandDashboardScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Dashboard'),
-        backgroundColor: brandColor,
-        foregroundColor: textColor,
       ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : _dashboardData == null
-              ? const Center(child: Text('No data found'))
-              : SingleChildScrollView(
-                  child: Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _buildSectionTitle('Active Bookings'),
-                        _buildActiveBookings(),
-                        const SizedBox(height: 24),
-                        _buildSectionTitle('Upcoming Exhibitions'),
-                        _buildUpcomingExhibitions(),
-                        const SizedBox(height: 24),
-                        _buildSectionTitle(
-                          'LookBook',
-                          onViewAll: () => context.push('/brand/lookbook'),
-                        ),
-                        _buildLookBookPreview(),
-                      ],
-                    ),
-                  ),
-                ),
+      body: GridView.count(
+        crossAxisCount: 2,
+        padding: const EdgeInsets.all(16.0),
+        children: [
+          _buildDashboardItem(
+            context,
+            'Profile',
+            Icons.person,
+            () => context.go('/brand/profile'),
+          ),
+          _buildDashboardItem(
+            context,
+            'Lookbook',
+            Icons.photo_library,
+            () => context.go('/brand/lookbook'),
+          ),
+          _buildDashboardItem(
+            context,
+            'Exhibitions',
+            Icons.event,
+            () => context.go('/brand/exhibitions'),
+          ),
+          _buildDashboardItem(
+            context,
+            'Bookings',
+            Icons.book,
+            () => context.go('/brand/bookings'),
+          ),
+          _buildDashboardItem(
+            context,
+            'Products',
+            Icons.shopping_bag,
+            () => context.go('/brand/products'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDashboardItem(
+    BuildContext context,
+    String title,
+    IconData icon,
+    VoidCallback onTap,
+  ) {
+    return Card(
+      child: InkWell(
+        onTap: onTap,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, size: 48),
+            const SizedBox(height: 8),
+            Text(title),
+          ],
+        ),
+      ),
     );
   }
 

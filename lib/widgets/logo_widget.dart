@@ -30,7 +30,7 @@ class LogoWidget extends StatelessWidget {
         if (showText) ...[
           const SizedBox(width: 8),
           Text(
-            text ?? 'Exhibition Hub',
+            text ?? 'Exhibae',
             style: textStyle ?? Theme.of(context).textTheme.titleLarge,
           ),
         ],

@@ -12,7 +12,6 @@ import '../screens/exhibitor/exhibition_details_screen.dart';
 import '../screens/exhibitor/stall_management_screen.dart';
 import '../screens/exhibitor/create_exhibition_screen.dart';
 import '../screens/exhibitor/edit_exhibition_screen.dart';
-import '../screens/organizer/analytics_screen.dart';
 import '../screens/brand/browse_exhibitions_screen.dart';
 import '../screens/brand/my_bookings_screen.dart';
 import '../screens/brand/my_products_screen.dart';
@@ -35,6 +34,20 @@ final GoRouter router = GoRouter(
       path: '/role-selection',
       builder: (context, state) => const RoleSelectionScreen(),
     ),
+    // User type specific login routes
+    GoRoute(
+      path: '/exhibitor/login',
+      builder: (context, state) => const LoginScreen(role: 'exhibitor'),
+    ),
+    GoRoute(
+      path: '/brand/login',
+      builder: (context, state) => const LoginScreen(role: 'brand'),
+    ),
+    GoRoute(
+      path: '/shopper/login',
+      builder: (context, state) => const LoginScreen(role: 'shopper'),
+    ),
+    // Generic login route (redirects based on role)
     GoRoute(
       path: '/login',
       builder: (context, state) => const LoginScreen(),
@@ -49,7 +62,7 @@ final GoRouter router = GoRouter(
       path: '/home',
       builder: (context, state) => const HomeScreen(),
     ),
-    // Organizer routes
+    // Exhibitor routes
     GoRoute(
       path: '/create-exhibition',
       builder: (context, state) => const CreateExhibitionScreen(),
@@ -67,12 +80,6 @@ final GoRouter router = GoRouter(
     GoRoute(
       path: '/exhibition/:id/stalls',
       builder: (context, state) => StallManagementScreen(
-        exhibitionId: state.pathParameters['id']!,
-      ),
-    ),
-    GoRoute(
-      path: '/exhibition/:id/analytics',
-      builder: (context, state) => AnalyticsScreen(
         exhibitionId: state.pathParameters['id']!,
       ),
     ),

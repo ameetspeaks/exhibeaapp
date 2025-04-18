@@ -26,6 +26,9 @@ class ExhibitionModel {
   final DateTime endDate;
   final String status;
   final List<String> galleryImages;
+  final String? logoUrl;
+  final String? coverUrl;
+  final String? venueLayoutUrl;
   final DateTime createdAt;
   final DateTime updatedAt;
 
@@ -55,6 +58,9 @@ class ExhibitionModel {
     required this.endDate,
     required this.status,
     required this.galleryImages,
+    this.logoUrl,
+    this.coverUrl,
+    this.venueLayoutUrl,
     required this.createdAt,
     required this.updatedAt,
   });
@@ -86,6 +92,9 @@ class ExhibitionModel {
       endDate: DateTime.parse(json['endDate'] as String),
       status: json['status'] as String,
       galleryImages: List<String>.from(json['galleryImages']),
+      logoUrl: json['logoUrl'] as String?,
+      coverUrl: json['coverUrl'] as String?,
+      venueLayoutUrl: json['venueLayoutUrl'] as String?,
       createdAt: DateTime.parse(json['createdAt'] as String),
       updatedAt: DateTime.parse(json['updatedAt'] as String),
     );
@@ -118,6 +127,9 @@ class ExhibitionModel {
       'endDate': endDate.toIso8601String(),
       'status': status,
       'galleryImages': galleryImages,
+      'logoUrl': logoUrl,
+      'coverUrl': coverUrl,
+      'venueLayoutUrl': venueLayoutUrl,
       'createdAt': createdAt.toIso8601String(),
       'updatedAt': updatedAt.toIso8601String(),
     };
@@ -149,6 +161,9 @@ class ExhibitionModel {
     DateTime? endDate,
     String? status,
     List<String>? galleryImages,
+    String? logoUrl,
+    String? coverUrl,
+    String? venueLayoutUrl,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
@@ -178,6 +193,9 @@ class ExhibitionModel {
       endDate: endDate ?? this.endDate,
       status: status ?? this.status,
       galleryImages: galleryImages ?? this.galleryImages,
+      logoUrl: logoUrl ?? this.logoUrl,
+      coverUrl: coverUrl ?? this.coverUrl,
+      venueLayoutUrl: venueLayoutUrl ?? this.venueLayoutUrl,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );

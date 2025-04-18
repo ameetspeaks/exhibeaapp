@@ -1,4 +1,4 @@
-import '../models/stall_layout_model.dart';
+import 'package:exhibea/models/stall.dart';
 
 class StallLayoutService {
   // Mock data for development
@@ -61,11 +61,35 @@ class StallLayoutService {
     ),
   ];
 
-  Future<StallLayoutModel?> getLayoutByExhibitionId(String exhibitionId) async {
+  Future<StallLayoutModel> getLayoutByExhibitionId(String exhibitionId) async {
     // TODO: Replace with actual API call
-    return _mockLayouts.firstWhere(
-      (layout) => layout.exhibitionId == exhibitionId,
-      orElse: () => _mockLayouts.first, // Fallback to first layout for demo
+    await Future.delayed(const Duration(seconds: 1));
+    
+    final stalls = List.generate(20, (index) {
+      final row = index ~/ 5;
+      final col = index % 5;
+      
+      return StallPosition(
+        row: row,
+        column: col,
+        isEntrance: index == 0,
+        isExit: index == 19,
+        isRestroom: index == 4 || index == 9,
+        isFoodCourt: index == 14,
+        isAvailable: ![0, 4, 9, 14, 19].contains(index),
+        stallSize: ['Small', 'Medium', 'Large'][index % 3],
+      );
+    });
+
+    return StallLayoutModel(
+      id: 'layout_$exhibitionId',
+      exhibitionId: exhibitionId,
+      name: 'Main Hall Layout',
+      rows: 4,
+      columns: 5,
+      stalls: stalls,
+      createdAt: DateTime.now(),
+      updatedAt: DateTime.now(),
     );
   }
 

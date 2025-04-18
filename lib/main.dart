@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
-import 'routes/app_router.dart';
+import 'routes.dart';
 import 'services/auth_service.dart';
 import 'widgets/logo_widget.dart';
 
-void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
+void main() {
   runApp(const MyApp());
 }
 
@@ -14,41 +13,39 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp.router(
-      title: 'Exhibition Hub',
+      title: 'Exhibition App',
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
         useMaterial3: true,
-        appBarTheme: const AppBarTheme(
-          centerTitle: true,
-          elevation: 0,
-        ),
-        navigationBarTheme: NavigationBarThemeData(
-          elevation: 0,
-          labelBehavior: NavigationDestinationLabelBehavior.onlyShowSelected,
-        ),
-      ),
-      darkTheme: ThemeData(
         colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.deepPurple,
-          brightness: Brightness.dark,
+          seedColor: const Color(0xFF248CEF),
+          brightness: Brightness.light,
         ),
-        useMaterial3: true,
+        cardTheme: CardTheme(
+          elevation: 2,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+        ),
+        elevatedButtonTheme: ElevatedButtonThemeData(
+          style: ElevatedButton.styleFrom(
+            elevation: 0,
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
+          ),
+        ),
         appBarTheme: const AppBarTheme(
-          centerTitle: true,
           elevation: 0,
+          centerTitle: true,
         ),
         navigationBarTheme: NavigationBarThemeData(
           elevation: 0,
-          labelBehavior: NavigationDestinationLabelBehavior.onlyShowSelected,
+          height: 70,
+          labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
         ),
       ),
       routerConfig: router,
-      builder: (context, child) {
-        return Scaffold(
-          body: child,
-        );
-      },
-      debugShowCheckedModeBanner: false,
     );
   }
 }

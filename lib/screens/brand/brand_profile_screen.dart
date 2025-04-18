@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../utils/placeholder_image.dart';
 import '../../services/auth_service.dart';
+import '../../services/brand_service.dart';
+import '../../models/brand_model.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class BrandProfileScreen extends StatefulWidget {
   const BrandProfileScreen({super.key});
@@ -13,7 +16,7 @@ class BrandProfileScreen extends StatefulWidget {
 class _BrandProfileScreenState extends State<BrandProfileScreen> {
   bool _isLoading = false;
   bool _isEditing = false;
-  Map<String, dynamic>? _brandProfile;
+  BrandModel? _brandProfile;
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _descriptionController = TextEditingController();
@@ -21,6 +24,7 @@ class _BrandProfileScreenState extends State<BrandProfileScreen> {
   final _phoneController = TextEditingController();
   final _websiteController = TextEditingController();
   final _addressController = TextEditingController();
+  final BrandService _brandService = BrandService();
 
   @override
   void initState() {
@@ -43,91 +47,9 @@ class _BrandProfileScreenState extends State<BrandProfileScreen> {
     setState(() => _isLoading = true);
 
     try {
-      // TODO: Implement brand profile loading logic
-      await Future.delayed(const Duration(seconds: 1)); // Simulated API call
+      final profileData = await _brandService.getBrandProfile();
       setState(() {
-        _brandProfile = {
-          'name': 'TechStyle',
-          'description': 'Leading technology and fashion brand',
-          'logo': 'assets/images/logo_placeholder.jpg',
-          'banner': 'assets/images/banner_placeholder.jpg',
-          'contact': {
-            'email': 'contact@techstyle.com',
-            'phone': '+91 9876543210',
-            'website': 'www.techstyle.com',
-            'address': '123 Tech Street, Innovation City',
-          },
-          'socialMedia': {
-            'instagram': '@techstyle',
-            'facebook': 'TechStyle',
-            'twitter': '@techstyle',
-          },
-          'lookbook': [
-            {
-              'id': '1',
-              'title': 'Spring Collection 2024',
-              'image': 'https://images.unsplash.com/photo-1445205170230-053b83016050?w=500&auto=format&fit=crop&q=60',
-              'description': 'Our latest spring collection featuring innovative designs',
-            },
-            {
-              'id': '2',
-              'title': 'Tech Fusion',
-              'image': 'https://images.unsplash.com/photo-1523381210434-271e8be1f52b?w=500&auto=format&fit=crop&q=60',
-              'description': 'Technology meets fashion in our signature collection',
-            },
-            {
-              'id': '3',
-              'title': 'Urban Explorer',
-              'image': 'https://images.unsplash.com/photo-1529139574466-a303027c1d8b?w=500&auto=format&fit=crop&q=60',
-              'description': 'Urban-inspired designs for the modern explorer',
-            },
-          ],
-          'mediaGallery': [
-            {
-              'id': '1',
-              'type': 'image',
-              'url': 'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=500&auto=format&fit=crop&q=60',
-              'caption': 'Product Launch Event',
-            },
-            {
-              'id': '2',
-              'type': 'image',
-              'url': 'https://images.unsplash.com/photo-1511795409834-43254d3b3a04?w=500&auto=format&fit=crop&q=60',
-              'caption': 'Fashion Show 2024',
-            },
-            {
-              'id': '3',
-              'type': 'image',
-              'url': 'https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?w=500&auto=format&fit=crop&q=60',
-              'caption': 'Store Opening',
-            },
-            {
-              'id': '4',
-              'type': 'image',
-              'url': 'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=500&auto=format&fit=crop&q=60',
-              'caption': 'Behind the Scenes',
-            },
-          ],
-          'stats': {
-            'exhibitions': 12,
-            'products': 45,
-            'followers': 1200,
-            'rating': 4.8,
-          },
-          'categories': ['Fashion', 'Technology', 'Lifestyle'],
-          'awards': [
-            {
-              'title': 'Best Innovation 2023',
-              'issuer': 'Tech Awards',
-              'year': '2023',
-            },
-            {
-              'title': 'Design Excellence',
-              'issuer': 'Fashion Council',
-              'year': '2022',
-            },
-          ],
-        };
+        _brandProfile = BrandModel.fromJson(profileData);
       });
     } catch (e) {
       if (mounted) {
@@ -143,35 +65,55 @@ class _BrandProfileScreenState extends State<BrandProfileScreen> {
   }
 
   void _startEditing() {
-    _nameController.text = _brandProfile!['name'];
-    _descriptionController.text = _brandProfile!['description'];
-    _emailController.text = _brandProfile!['contact']['email'];
-    _phoneController.text = _brandProfile!['contact']['phone'];
-    _websiteController.text = _brandProfile!['contact']['website'];
-    _addressController.text = _brandProfile!['contact']['address'];
-    setState(() => _isEditing = true);
+    if (_brandProfile != null) {
+      _nameController.text = _brandProfile!.name;
+      _descriptionController.text = _brandProfile!.description;
+      _emailController.text = _brandProfile!.contact.email;
+      _phoneController.text = _brandProfile!.contact.phone;
+      _websiteController.text = _brandProfile!.contact.website;
+      _addressController.text = _brandProfile!.contact.address;
+      setState(() => _isEditing = true);
+    }
   }
 
-  void _saveProfile() {
-    if (_formKey.currentState!.validate()) {
-      setState(() {
-        _brandProfile = {
-          ..._brandProfile!,
-          'name': _nameController.text,
-          'description': _descriptionController.text,
-          'contact': {
-            ..._brandProfile!['contact'],
-            'email': _emailController.text,
-            'phone': _phoneController.text,
-            'website': _websiteController.text,
-            'address': _addressController.text,
-          },
+  Future<void> _saveProfile() async {
+    if (_formKey.currentState!.validate() && _brandProfile != null) {
+      setState(() => _isLoading = true);
+
+      try {
+        final updatedProfile = _brandProfile!.toJson();
+        updatedProfile['name'] = _nameController.text;
+        updatedProfile['description'] = _descriptionController.text;
+        updatedProfile['contact'] = {
+          ..._brandProfile!.contact.toJson(),
+          'email': _emailController.text,
+          'phone': _phoneController.text,
+          'website': _websiteController.text,
+          'address': _addressController.text,
         };
-        _isEditing = false;
-      });
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Profile updated successfully')),
-      );
+
+        final savedProfile = await _brandService.updateBrandProfile(updatedProfile);
+        setState(() {
+          _brandProfile = BrandModel.fromJson(savedProfile);
+          _isEditing = false;
+        });
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Profile updated successfully')),
+          );
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Error updating profile: $e')),
+          );
+        }
+      } finally {
+        if (mounted) {
+          setState(() => _isLoading = false);
+        }
+      }
     }
   }
 
@@ -350,7 +292,7 @@ class _BrandProfileScreenState extends State<BrandProfileScreen> {
                                           )
                                         else
                                           Text(
-                                            _brandProfile!['name'],
+                                            _brandProfile!.name,
                                             style: const TextStyle(
                                               fontSize: 24,
                                               fontWeight: FontWeight.bold,
@@ -373,7 +315,7 @@ class _BrandProfileScreenState extends State<BrandProfileScreen> {
                                             },
                                           )
                                         else
-                                          Text(_brandProfile!['description']),
+                                          Text(_brandProfile!.description),
                                         const SizedBox(height: 24),
                                         _buildSectionTitle('Brand Stats'),
                                         _buildStatsCard(),
@@ -448,22 +390,22 @@ class _BrandProfileScreenState extends State<BrandProfileScreen> {
                                               children: [
                                                 _buildContactRow(
                                                   icon: Icons.email,
-                                                  text: _brandProfile!['contact']['email'],
+                                                  text: _brandProfile!.contact.email,
                                                 ),
                                                 const SizedBox(height: 8),
                                                 _buildContactRow(
                                                   icon: Icons.phone,
-                                                  text: _brandProfile!['contact']['phone'],
+                                                  text: _brandProfile!.contact.phone,
                                                 ),
                                                 const SizedBox(height: 8),
                                                 _buildContactRow(
                                                   icon: Icons.language,
-                                                  text: _brandProfile!['contact']['website'],
+                                                  text: _brandProfile!.contact.website,
                                                 ),
                                                 const SizedBox(height: 8),
                                                 _buildContactRow(
                                                   icon: Icons.location_on,
-                                                  text: _brandProfile!['contact']['address'],
+                                                  text: _brandProfile!.contact.address,
                                                 ),
                                               ],
                                             ),
@@ -531,22 +473,22 @@ class _BrandProfileScreenState extends State<BrandProfileScreen> {
             _buildStatItem(
               icon: Icons.event,
               label: 'Exhibitions',
-              value: _brandProfile!['stats']['exhibitions'].toString(),
+              value: _brandProfile!.stats.exhibitions.toString(),
             ),
             _buildStatItem(
               icon: Icons.shopping_bag,
               label: 'Products',
-              value: _brandProfile!['stats']['products'].toString(),
+              value: _brandProfile!.stats.products.toString(),
             ),
             _buildStatItem(
               icon: Icons.people,
               label: 'Followers',
-              value: _brandProfile!['stats']['followers'].toString(),
+              value: _brandProfile!.stats.followers.toString(),
             ),
             _buildStatItem(
               icon: Icons.star,
               label: 'Rating',
-              value: _brandProfile!['stats']['rating'].toString(),
+              value: _brandProfile!.stats.rating.toString(),
             ),
           ],
         ),
@@ -583,7 +525,7 @@ class _BrandProfileScreenState extends State<BrandProfileScreen> {
     return Wrap(
       spacing: 8,
       runSpacing: 8,
-      children: _brandProfile!['categories'].map<Widget>((category) {
+      children: _brandProfile!.categories.map<Widget>((category) {
         return Chip(
           label: Text(category),
           backgroundColor: Colors.blue[100],
@@ -596,159 +538,143 @@ class _BrandProfileScreenState extends State<BrandProfileScreen> {
     return ListView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
-      itemCount: _brandProfile!['awards'].length,
+      itemCount: _brandProfile!.awards.length,
       itemBuilder: (context, index) {
-        final award = _brandProfile!['awards'][index];
+        final award = _brandProfile!.awards[index];
         return ListTile(
           leading: const Icon(Icons.emoji_events),
-          title: Text(award['title']),
-          subtitle: Text('${award['issuer']} - ${award['year']}'),
+          title: Text(award.title),
+          subtitle: Text('${award.issuer} - ${award.year}'),
         );
       },
     );
   }
 
   Widget _buildLookBookSection() {
-    return SizedBox(
-      height: 220,
-      child: ListView.builder(
-        scrollDirection: Axis.horizontal,
-        itemCount: _brandProfile!['lookbook'].length,
-        itemBuilder: (context, index) {
-          final look = _brandProfile!['lookbook'][index];
-          return Container(
-            width: 180,
-            margin: const EdgeInsets.only(right: 16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(8),
-                  child: Image.network(
-                    look['image'],
-                    width: 180,
-                    height: 180,
-                    fit: BoxFit.cover,
-                    loadingBuilder: (context, child, loadingProgress) {
-                      if (loadingProgress == null) return child;
-                      return Container(
-                        width: 180,
-                        height: 180,
-                        color: Colors.grey[200],
-                        child: const Center(
-                          child: CircularProgressIndicator(),
-                        ),
-                      );
-                    },
-                    errorBuilder: (context, error, stackTrace) {
-                      return Container(
-                        width: 180,
-                        height: 180,
-                        color: Colors.grey[200],
-                        child: const Icon(
-                          Icons.error_outline,
-                          color: Colors.red,
-                        ),
-                      );
-                    },
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Flexible(
-                  child: Text(
-                    look['title'],
-                    style: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Flexible(
-                  child: Text(
-                    look['description'],
-                    style: const TextStyle(fontSize: 12),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-              ],
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildSectionTitle('LookBook'),
+        if (_brandProfile!.lookbook.isEmpty)
+          const Center(child: Text('No LookBook items available'))
+        else
+          GridView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 2,
+              childAspectRatio: 0.8,
+              crossAxisSpacing: 8,
+              mainAxisSpacing: 8,
             ),
-          );
-        },
-      ),
+            itemCount: _brandProfile!.lookbook.length,
+            itemBuilder: (context, index) {
+              final look = _brandProfile!.lookbook[index];
+              return Card(
+                child: InkWell(
+                  onTap: () => _openLookBookItem(look),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: Image.network(
+                          look['image'] ?? '',
+                          fit: BoxFit.cover,
+                          width: double.infinity,
+                          errorBuilder: (context, error, stackTrace) => const Icon(Icons.error),
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              look['title'] ?? '',
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              look['description'] ?? '',
+                              style: const TextStyle(fontSize: 12),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            },
+          ),
+      ],
     );
   }
 
   Widget _buildMediaGallery() {
-    return GridView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        childAspectRatio: 1.2,
-        crossAxisSpacing: 8,
-        mainAxisSpacing: 8,
-      ),
-      itemCount: _brandProfile!['mediaGallery'].length,
-      itemBuilder: (context, index) {
-        final media = _brandProfile!['mediaGallery'][index];
-        return Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(8),
-            color: Colors.grey[200],
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              ClipRRect(
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(8)),
-                child: Image.network(
-                  media['url'],
-                  height: 120,
-                  width: double.infinity,
-                  fit: BoxFit.cover,
-                  loadingBuilder: (context, child, loadingProgress) {
-                    if (loadingProgress == null) return child;
-                    return Container(
-                      height: 120,
-                      color: Colors.grey[200],
-                      child: const Center(
-                        child: CircularProgressIndicator(),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildSectionTitle('Media Gallery'),
+        if (_brandProfile!.mediaGallery.isEmpty)
+          const Center(child: Text('No media items available'))
+        else
+          GridView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 3,
+              childAspectRatio: 1,
+              crossAxisSpacing: 4,
+              mainAxisSpacing: 4,
+            ),
+            itemCount: _brandProfile!.mediaGallery.length,
+            itemBuilder: (context, index) {
+              final media = _brandProfile!.mediaGallery[index];
+              return Card(
+                child: InkWell(
+                  onTap: () => _openMediaItem(media),
+                  child: Stack(
+                    children: [
+                      Image.network(
+                        media['url'] ?? '',
+                        fit: BoxFit.cover,
+                        width: double.infinity,
+                        height: double.infinity,
+                        errorBuilder: (context, error, stackTrace) => const Icon(Icons.error),
                       ),
-                    );
-                  },
-                  errorBuilder: (context, error, stackTrace) {
-                    return Container(
-                      height: 120,
-                      color: Colors.grey[200],
-                      child: const Icon(
-                        Icons.error_outline,
-                        color: Colors.red,
-                      ),
-                    );
-                  },
-                ),
-              ),
-              Flexible(
-                child: Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Text(
-                    media['caption'],
-                    style: const TextStyle(fontSize: 12),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+                      if (media['caption'] != null && media['caption'].isNotEmpty)
+                        Positioned(
+                          bottom: 0,
+                          left: 0,
+                          right: 0,
+                          child: Container(
+                            padding: const EdgeInsets.all(4),
+                            color: Colors.black54,
+                            child: Text(
+                              media['caption'] ?? '',
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 12,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ),
+                    ],
                   ),
                 ),
-              ),
-            ],
+              );
+            },
           ),
-        );
-      },
+      ],
     );
   }
 
@@ -854,5 +780,83 @@ class _BrandProfileScreenState extends State<BrandProfileScreen> {
       setState(() => _isEditing = false);
       context.pop();
     }
+  }
+
+  Future<void> _openLookBookItem(Map<String, dynamic> look) async {
+    if (look['type'] == 'pdf') {
+      final Uri url = Uri.parse(look['url'] ?? '');
+      if (await canLaunchUrl(url)) {
+        await launchUrl(url);
+      } else {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Could not open PDF')),
+          );
+        }
+      }
+    } else {
+      if (mounted) {
+        showDialog(
+          context: context,
+          builder: (context) => Dialog(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Image.network(
+                  look['image'] ?? '',
+                  fit: BoxFit.contain,
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    children: [
+                      Text(
+                        look['title'] ?? '',
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(look['description'] ?? ''),
+                    ],
+                  ),
+                ),
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('Close'),
+                ),
+              ],
+            ),
+          ),
+        );
+      }
+    }
+  }
+
+  void _openMediaItem(Map<String, dynamic> media) {
+    showDialog(
+      context: context,
+      builder: (context) => Dialog(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Image.network(
+              media['url'] ?? '',
+              fit: BoxFit.contain,
+            ),
+            if (media['caption'] != null && media['caption'].isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Text(media['caption'] ?? ''),
+              ),
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Close'),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 } 
